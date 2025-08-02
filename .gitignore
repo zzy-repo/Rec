@@ -1,0 +1,6 @@
+TencentGR_1k
+logs
+tensorboard
+.conda
+__pycache__
+.env
