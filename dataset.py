@@ -467,8 +467,46 @@ def load_mm_emb(mm_path, feat_ids):
             except Exception as e:
                 print(f"transfer error: {e}")
         if feat_id == '81':
-            with open(Path(mm_path, f'emb_{feat_id}_{shape}.pkl'), 'rb') as f:
-                emb_dict = pickle.load(f)
+            # 处理分片格式的数据
+            base_path = Path(mm_path, f'emb_{feat_id}_{shape}')
+            emb_dict = {}
+            try:
+                part_files = list(base_path.glob('part-*'))
+                print(f"Found {len(part_files)} part files for feat_id {feat_id}")
+                for part_file in part_files:
+                    print(f"Processing {part_file}")
+                    with open(part_file, 'r', encoding='utf-8') as file:
+                        for line_num, line in enumerate(file):
+                            line = line.strip()
+                            if not line:  # 跳过空行
+                                continue
+                            try:
+                                data_dict_origin = json.loads(line)
+                                if 'emb' not in data_dict_origin:
+                                    print(f"Warning: 'emb' not found in line {line_num} of {part_file}")
+                                    continue
+                                insert_emb = data_dict_origin['emb']
+                                if isinstance(insert_emb, list):
+                                    insert_emb = np.array(insert_emb, dtype=np.float32)
+                                data_dict = {data_dict_origin['anonymous_cid']: insert_emb}
+                                emb_dict.update(data_dict)
+                            except json.JSONDecodeError as e:
+                                print(f"JSON decode error in line {line_num} of {part_file}: {e}")
+                                continue
+                            except Exception as e:
+                                print(f"Error processing line {line_num} of {part_file}: {e}")
+                                continue
+                print(f"Successfully loaded {len(emb_dict)} embeddings for feat_id {feat_id}")
+            except Exception as e:
+                print(f"Error loading feat_id {feat_id}: {e}")
+                # 如果分片格式失败，尝试加载单个pkl文件
+                try:
+                    with open(Path(mm_path, f'emb_{feat_id}_{shape}.pkl'), 'rb') as f:
+                        emb_dict = pickle.load(f)
+                        print(f"Successfully loaded pkl file for feat_id {feat_id}")
+                except Exception as e2:
+                    print(f"Failed to load both formats for feat_id {feat_id}: {e2}")
+                    emb_dict = {}
         mm_emb_dict[feat_id] = emb_dict
         print(f'Loaded #{feat_id} mm_emb')
     return mm_emb_dict
