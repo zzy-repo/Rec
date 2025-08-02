@@ -18,7 +18,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     # Train params
-    parser.add_argument('--batch_size', default=16, type=int)
+    parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--lr', default=0.001, type=float)
     parser.add_argument('--maxlen', default=101, type=int)
 
@@ -29,7 +29,7 @@ def get_args():
     parser.add_argument('--num_heads', default=1, type=int)
     parser.add_argument('--dropout_rate', default=0.2, type=float)
     parser.add_argument('--l2_emb', default=0.0, type=float)
-    parser.add_argument('--device', default='cuda', type=str)
+    parser.add_argument('--device', default='cpu', type=str)
     parser.add_argument('--inference_only', action='store_true')
     parser.add_argument('--state_dict_path', default=None, type=str)
     parser.add_argument('--norm_first', action='store_true')
