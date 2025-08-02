@@ -4,3 +4,5 @@ tensorboard
 .conda
 __pycache__
 .env
+events
+checkpoints
